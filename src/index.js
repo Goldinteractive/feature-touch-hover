@@ -69,12 +69,28 @@ class TouchHover extends base.features.Feature {
       return false
     }
 
-    this.initialActive = false
     this.openedByTouch = false
     this.openedByMouseenter = false
 
+    if (base.utils.check.isFunction(this.options.resetOpen)
+        && (this.options.resetOpenOnMouseBlur
+            && ((e.type === 'mouseleave' || e.type === 'mouseenter')
+                || (e.type === 'click' && e.currentTarget !== document && this.options.resetOpenOnClickBlur)
+                || (e.type === 'click' && e.currentTarget === document && this.options.resetOpenOnOuterClickBlur)))
+    ) {
+      this.options.resetOpen.call(this)
+    }
+
+    if ((this.options.resetActiveOnMouseBlur
+         && ((e.type === 'mouseleave' || e.type === 'mouseenter'))
+             || (e.type === 'click' && e.currentTarget !== document && this.options.resetActiveOnClickBlur)
+             || (e.type === 'click' && e.currentTarget === document && this.options.resetActiveOnOuterClickBlur))
+    ) {
+      this.initialActive = false
+      this.node.classList.remove(this.options.classActive)
+    }
+
     this.node.classList.remove(this.options.classClicked)
-    this.node.classList.remove(this.options.classActive)
   }
 
   _hover(e) {
@@ -113,6 +129,10 @@ class TouchHover extends base.features.Feature {
     this.openedByTouch = false
     this.openedByMouseenter = false
 
+    if (base.utils.check.isFunction(this.options.resetOpen)) {
+      this.options.resetOpen.call(this)
+    }
+
     this.node.classList.remove(this.options.classActive)
     this.node.classList.add(this.options.classClicked)
   }
@@ -138,11 +158,17 @@ class TouchHover extends base.features.Feature {
     return (e) => {
       clicked = true
 
+      let isOpen = (base.utils.check.isFunction(this.options.openCheck)
+                    && this.options.openCheck.call(this))
+
       if (this.node.getAttribute(ATTR_FORCE_PRIMARY_CLICK) !== null
           || (base.utils.check.isFunction(this.options.forcePrimaryClick)
-             ? this.options.forcePrimaryClick() : this.options.forcePrimaryClick)
-          || (this.node.classList.contains(this.options.classActive)
-              && (!touchUsed || (touchUsed && this.openedByTouch) || this.initialActive)
+             ? this.options.forcePrimaryClick.call(this) : this.options.forcePrimaryClick)
+          || ((this.node.classList.contains(this.options.classActive) || isOpen)
+              && (!touchUsed
+                  || (touchUsed && this.openedByTouch)
+                  || this.initialActive
+                  || (isOpen && !this.openedByTouch && !this.openedByMouseenter))
           )
       ) {
         this._primaryClick(e)
@@ -170,7 +196,15 @@ class TouchHover extends base.features.Feature {
 TouchHover.defaultOptions = {
   classActive: '-active',
   classClicked: '-clicked',
-  forcePrimaryClick: null
+  forcePrimaryClick: null,
+  openCheck: null,
+  resetOpen: null,
+  resetOpenOnMouseBlur: true,
+  resetOpenOnClickBlur: true,
+  resetOpenOnOuterClickBlur: false,
+  resetActiveOnMouseBlur: true,
+  resetActiveOnClickBlur: true,
+  resetActiveOnOuterClickBlur: true
 }
 
 export default TouchHover

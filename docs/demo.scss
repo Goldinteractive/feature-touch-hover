@@ -25,12 +25,18 @@ h2 {
 
 @import '../src/style';
 
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
 ul li {
   padding: 4px 0;
 }
 
 ul li ul {
   display: none;
+  padding-left: 20px;
 }
 
 ul li a {
@@ -48,4 +54,10 @@ ul li.-active ul {
 
 ul li.-clicked a {
   color: red;
+}
+
+@media (max-width: 400px) {
+  ul li.-current ul {
+    display: block;
+  }
 }

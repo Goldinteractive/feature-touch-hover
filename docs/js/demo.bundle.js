@@ -6801,12 +6801,19 @@ exports.clearImmediate = clearImmediate;
           return false;
         }
 
-        this.initialActive = false;
         this.openedByTouch = false;
         this.openedByMouseenter = false;
 
+        if (base.utils.check.isFunction(this.options.resetOpen) && this.options.resetOpenOnMouseBlur && (e.type === 'mouseleave' || e.type === 'mouseenter' || e.type === 'click' && e.currentTarget !== document && this.options.resetOpenOnClickBlur || e.type === 'click' && e.currentTarget === document && this.options.resetOpenOnOuterClickBlur)) {
+          this.options.resetOpen.call(this);
+        }
+
+        if (this.options.resetActiveOnMouseBlur && (e.type === 'mouseleave' || e.type === 'mouseenter') || e.type === 'click' && e.currentTarget !== document && this.options.resetActiveOnClickBlur || e.type === 'click' && e.currentTarget === document && this.options.resetActiveOnOuterClickBlur) {
+          this.initialActive = false;
+          this.node.classList.remove(this.options.classActive);
+        }
+
         this.node.classList.remove(this.options.classClicked);
-        this.node.classList.remove(this.options.classActive);
       }
     }, {
       key: '_hover',
@@ -6849,6 +6856,10 @@ exports.clearImmediate = clearImmediate;
         this.openedByTouch = false;
         this.openedByMouseenter = false;
 
+        if (base.utils.check.isFunction(this.options.resetOpen)) {
+          this.options.resetOpen.call(this);
+        }
+
         this.node.classList.remove(this.options.classActive);
         this.node.classList.add(this.options.classClicked);
       }
@@ -6883,7 +6894,9 @@ exports.clearImmediate = clearImmediate;
         return function (e) {
           clicked = true;
 
-          if (_this5.node.getAttribute(ATTR_FORCE_PRIMARY_CLICK) !== null || (base.utils.check.isFunction(_this5.options.forcePrimaryClick) ? _this5.options.forcePrimaryClick() : _this5.options.forcePrimaryClick) || _this5.node.classList.contains(_this5.options.classActive) && (!touchUsed || touchUsed && _this5.openedByTouch || _this5.initialActive)) {
+          var isOpen = base.utils.check.isFunction(_this5.options.openCheck) && _this5.options.openCheck.call(_this5);
+
+          if (_this5.node.getAttribute(ATTR_FORCE_PRIMARY_CLICK) !== null || (base.utils.check.isFunction(_this5.options.forcePrimaryClick) ? _this5.options.forcePrimaryClick.call(_this5) : _this5.options.forcePrimaryClick) || (_this5.node.classList.contains(_this5.options.classActive) || isOpen) && (!touchUsed || touchUsed && _this5.openedByTouch || _this5.initialActive || isOpen && !_this5.openedByTouch && !_this5.openedByMouseenter)) {
             _this5._primaryClick(e);
           } else {
             e.preventDefault();
@@ -6911,7 +6924,15 @@ exports.clearImmediate = clearImmediate;
   TouchHover.defaultOptions = {
     classActive: '-active',
     classClicked: '-clicked',
-    forcePrimaryClick: null
+    forcePrimaryClick: null,
+    openCheck: null,
+    resetOpen: null,
+    resetOpenOnMouseBlur: true,
+    resetOpenOnClickBlur: true,
+    resetOpenOnOuterClickBlur: false,
+    resetActiveOnMouseBlur: true,
+    resetActiveOnClickBlur: true,
+    resetActiveOnOuterClickBlur: true
   };
 
   exports.default = TouchHover;
@@ -7354,7 +7375,17 @@ module.exports = g;
     };
   }
 
-  base.features.add('touch-hover', _src2.default, {});
+  base.features.add('touch-hover', _src2.default, {
+    openCheck: function openCheck() {
+      var $submenu = this.node.querySelector('ul');
+      var style = window.getComputedStyle($submenu);
+
+      return style.getPropertyValue('display') !== 'none' && style.getPropertyValue('visibility') !== 'hidden';
+    },
+    resetOpen: function resetOpen() {
+      this.node.classList.remove('-current');
+    }
+  });
 
   base.features.init();
 });

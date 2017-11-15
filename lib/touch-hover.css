@@ -1,2 +1,2 @@
-.ft-touch-hover{-ms-touch-action:manipulation;touch-action:manipulation}.ft-touch-hover,.ft-touch-hover a{-webkit-tap-highlight-color:rgba(0,0,0,0)}
+.ft-touch-hover{-ms-touch-action:manipulation;touch-action:manipulation;-webkit-touch-callout:none}.ft-touch-hover,.ft-touch-hover a{-webkit-tap-highlight-color:rgba(0,0,0,0)}
 /*# sourceMappingURL=touch-hover.css.map */
